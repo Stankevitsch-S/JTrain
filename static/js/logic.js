@@ -16,13 +16,10 @@ function generateClue(requestData, settings){
     $("#buttonResponse").html("")
     $.ajax({
         type:"POST",
-        url:apiendpoint,
+        url:"https://ys7dxtnbo9.execute-api.us-east-2.amazonaws.com/default/ServeClues",
         data: JSON.stringify(requestData),
         crossDomain: true,
         dataType: 'json',
-        headers: {
-            'X-Api-Key':xapikey
-        },
         success: function(result){
             if (result['count'] == 0){
                 $("#customizeModalLabel").text(`Customization Settings: 0 clues selected`)
@@ -230,7 +227,7 @@ function buildCustomization(settings){
         }
     })
     // Clean up the customization modal on smaller screens.
-    if ($(window).width() <= 500){
+    if ($(window).width() < 400){
         $(".filterLabel").each(function(){
             $(this).after("<br>")
         })
