@@ -11,47 +11,75 @@ const defaultRequest=[{"name":"Business","value":"Brands"},{"name":"Business","v
 var alertWarning
 var alertError
 
+// Initialize everything with default request and settings on page load (function call is at the bottom).
+function initApp(){
+    // Initialize the Amazon Cognito credentials provider.
+    AWS.config.region = 'us-east-2'; // Region
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: 'us-east-2:5f1995a6-d8c2-40aa-b0cd-d993cf08f7b0'
+    });
+    // Get temporary credentials to use the API Gateway service.
+    var promise = AWS.config.credentials.getPromise();
+    promise.then(function(){
+        var apigClient = apigClientFactory.newClient({
+            accessKey: AWS.config.credentials.accessKeyId,
+            secretKey: AWS.config.credentials.secretAccessKey,
+            sessionToken: AWS.config.credentials.sessionToken,
+            region: AWS.config.region,
+        })
+        generateClue(defaultRequest,defaultSettings,apigClient)
+        buildCustomization(defaultSettings,apigClient)
+        }).catch(function(result){
+            console.log(result)
+        })     
+}
+
 // Randomly generate clue along with corresponding category and metadata.
-function generateClue(requestData, settings){
+function generateClue(requestData,settings,apigClient){
     $("#buttonResponse").html("")
-    $.ajax({
-        type:"POST",
-        url:"https://ys7dxtnbo9.execute-api.us-east-2.amazonaws.com/default/ServeClues",
-        data: JSON.stringify(requestData),
-        crossDomain: true,
-        dataType: 'json',
-        success: function(result){
-            if (result['count'] == 0){
-                $("#customizeModalLabel").text(`Customization Settings: 0 clues selected`)
-                if (alertError != true){
-                    $("#customizeModal").find(".modal-body").prepend('<div class="alert alert-danger alert-dismissible">\
-                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>\
-                    <strong>Error:</strong> Filtering returns no clues.\
-                    </div>')
-                    alertError = true
-                    $(".alert-danger").on("close.bs.alert", function(){
-                        alertError = false
-                    }) 
-                }                
-            } else {
-                buildClues(result,settings)
-            }
-        },
-        error: function(xhr,ajaxOptions,thrownError){
-            console.log(xhr)
-            console.log(ajaxOptions)
-            console.log(thrownError)
+    $("#buttons").html("")
+    apigClient.serveCluesPost({},requestData)
+    .then(function(result){
+        var result = result['data']
+        if (result['count'] == 0){
+            $("#customizeModalLabel").text(`Customization Settings: 0 clues selected`)
+            if (alertError != true){
+                $("#customizeModal").find(".modal-body").prepend('<div class="alert alert-danger alert-dismissible">\
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>\
+                <strong>Error:</strong> Filtering returns no clues.\
+                </div>')
+                alertError = true
+                $(".alert-danger").on("close.bs.alert", function(){
+                    alertError = false
+                }) 
+            }                
+        } else {
+            buildClues(result,settings,apigClient)
+        }        
+    }).catch(function(result){
+        // Refresh credentials and try again if they have expired (temp credentials expire after an hour).
+        if (result['data']['message'] == "The security token included in the request is expired"){
+            var promise = AWS.config.credentials.refreshPromise();
+            promise.then(function(){
+                var apigClient = apigClientFactory.newClient({
+                    accessKey: AWS.config.credentials.accessKeyId,
+                    secretKey: AWS.config.credentials.secretAccessKey,
+                    sessionToken: AWS.config.credentials.sessionToken,
+                    region: AWS.config.region,
+                })
+                generateClue(requestData,settings,apigClient)
+                }).catch(function(result){
+                    console.log(result)
+                })
+        // Otherwise, make sure not to call generateClue again to prevent endless loop of API calls.  
+        } else {
+            console.log(result)
         }
     })
 }
 
-function initApp(){
-    generateClue(defaultRequest,defaultSettings)
-    buildCustomization(defaultSettings)
-}
-
 // Build the main page with specified clue data set, controlled by filters in the customize page.
-function buildClues(result, settings){
+function buildClues(result, settings,apigClient){
     // After randomly generating the clue, find matching category and show data.
     var clue = result['clue']
     var category = result['category']
@@ -84,7 +112,7 @@ function buildClues(result, settings){
         $("#buttonResponse").html(`Answer:<br>${clue["answer1"]}<br>\
         <button type="button" class="btn btn-secondary mt-2" id="newClue">New Clue</button>`)
         $("#newClue").click(function(){
-            generateClue($("form").serializeArray(),settings)
+            generateClue($("form").serializeArray(),settings,apigClient)
         })
     })
     $("#showHints").click(function(){
@@ -119,7 +147,7 @@ function buildClues(result, settings){
 }
 
 // Build the customization modal with all possible filters, dictated by the supplementary objects at the top.
-function buildCustomization(settings){
+function buildCustomization(settings,apigClient){
     // Populate category/subcategory filters.
     $("#collapseOne").find(".card-body").html("")
     for (let [key,values] of Object.entries(labels["category"])){
@@ -229,7 +257,7 @@ function buildCustomization(settings){
         }
     })
     // Clean up the customization modal on smaller screens.
-    if ($(window).width() < 500){
+    if ($(window).width() <= 500){
         $(".filterLabel").each(function(){
             $(this).after("<br>")
         })
@@ -251,14 +279,14 @@ function buildCustomization(settings){
         }
     })
     $("#customizeSave").off().click(function(){
-        settings = {"hintCount":$("form").serializeArray()[$("form").serializeArray().length - 2]['value'],"clueSet":$("form").serializeArray()[$("form").serializeArray().length - 1]['value']}
         // Create object out of customization form results.
-        generateClue($("form").serializeArray(),settings)
+        settings = {"hintCount":$("form").serializeArray()[$("form").serializeArray().length - 2]['value'],"clueSet":$("form").serializeArray()[$("form").serializeArray().length - 1]['value']}
+        generateClue($("form").serializeArray(),settings,apigClient)
     })
     $("#customizeReset").off().click(function(){
-        buildCustomization(defaultSettings)
+        buildCustomization(defaultSettings,apigClient)
     })
 }
 
-// Initialize everything with clue set 1 on page load.
+// No need to pass anything into initApp since we have global variables for default request and settings.
 initApp();

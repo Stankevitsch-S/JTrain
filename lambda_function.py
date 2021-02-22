@@ -23,7 +23,8 @@ def lambda_handler(event,context):
             'headers': {
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+            'Access-Control-Allow-Credentials': True
             },
             'body': json.dumps({'count':0})
         }
@@ -79,7 +80,8 @@ def lambda_handler(event,context):
         'headers': {
         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Credentials': True
         },
         'body': json.dumps({'clue':randomClue, 'category':randomCategory, 'metadata':randomMetadata, 'count':clueCount})
     }
