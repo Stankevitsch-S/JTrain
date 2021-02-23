@@ -35,7 +35,7 @@ def lambda_handler(event,context):
     engine = create_engine(db_string_aws)
  
     # Process input to determine which clue set to use.
-    clueSet = [event[i]["value"] for i in range(len(event)) if event[i]["name"] == "clueSet"][0]
+    clueSet = int([event[i]["value"] for i in range(len(event)) if event[i]["name"] == "clueSet"][0])
 
     # Build up final query for clues.
     clueQueryComponents = []
