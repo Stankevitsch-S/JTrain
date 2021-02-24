@@ -1,2 +1,2 @@
-# JTrain-AWS
-JTrain with AWS backend instead of local data.
+# JTrain
+Redirect page to J! Train (static version): https://stankevitsch-s.github.io/JTrain-Static/
