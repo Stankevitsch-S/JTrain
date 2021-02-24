@@ -1,5 +1,5 @@
 {
-  "name": "jtrain-aws",
+  "name": "jtrain",
   "version": "1.0.0",
   "description": "JTrain with API instead of local files.",
   "main": "app.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Stankevitsch-S/JTrain-AWS.git"
+    "url": "git+https://github.com/Stankevitsch-S/JTrain.git"
   },
   "author": "Shawn S",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Stankevitsch-S/JTrain-AWS/issues"
+    "url": "https://github.com/Stankevitsch-S/JTrain/issues"
   },
-  "homepage": "https://github.com/Stankevitsch-S/JTrain-AWS#readme",
+  "homepage": "https://github.com/Stankevitsch-S/JTrain#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1"
