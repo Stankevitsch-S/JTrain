@@ -280,7 +280,7 @@ function buildCustomization(settings,apigClient){
     })
     $("#customizeSave").off().click(function(){
         // Create object out of customization form results.
-        settings = {"hintCount":$("form").serializeArray()[$("form").serializeArray().length - 2]['value'],"clueSet":$("form").serializeArray()[$("form").serializeArray().length - 1]['value']}
+        settings = {"hintCount":$("form").serializeArray().find(row => row["name"]=="hintCount")["value"],"clueSet":$("form").serializeArray().find(row => row["name"]=="clueSet")["value"]}
         generateClue($("form").serializeArray(),settings,apigClient)
     })
     $("#customizeReset").off().click(function(){
