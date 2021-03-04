@@ -9,6 +9,12 @@ labels={"category":{"Business":["Brands","Companies"],"Culture":["Art","Awards",
 roundConversion={"Jeopardy Round":1,"Double Jeopardy Round":2,"Final Jeopardy Round":3}
 valueConversion={"Final Jeopardy":0,"Tiebreaker":-1,"200":200,"400":400,"600":600,"800":800,"1000":1000,"1200":1200,"1600":1600,"2000":2000}
 
+# Connection string using environment variables.
+dbString = "postgresql://{}:{}@{}:{}/{}".format(os.environ['db_user'],os.environ['db_password'],os.environ['db_endpoint'],os.environ['db_port'],os.environ['db_dbname'])
+
+# Connect to the database in Lambda environment.
+engine = create_engine(dbString)
+
 def lambda_handler(event,context):
     event = json.loads(event['body'])
     # Process input by whether it affects metadata, category, or clue.
@@ -28,12 +34,7 @@ def lambda_handler(event,context):
             },
             'body': json.dumps({'count':0})
         }
-    # Connection string using environment variables.
-    db_string_aws = "postgresql://{}:{}@{}:{}/{}".format(os.environ['db_user'],os.environ['db_password'],os.environ['db_endpoint'],os.environ['db_port'],os.environ['db_dbname'])
-    
-    # Connect to the database.
-    engine = create_engine(db_string_aws)
- 
+
     # Process input to determine which clue set to use.
     clueSet = int([event[i]["value"] for i in range(len(event)) if event[i]["name"] == "clueSet"][0])
 
