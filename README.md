@@ -12,7 +12,7 @@ This application is hosted on: https://main.dt0k15y7cxk84.amplifyapp.com/
 
 On launch, a Jeopardy! clue from any category will be delivered. Near-miss answers can be seen by clicking "Show Hints", potentially helpful metadata such as Jeopardy! round, value, and show airdate can be seen by clicking "More Info", and the answer can be seen by clicking "Show Answer". Revealing the answer will also allow for a new clue to be loaded.<br>
 
-To filter for specific categories, values, and/or show types, click on customize, select all appropriate filters, and click "Save changes". 
+To filter for specific categories, values, and/or show types, click on customize, select all appropriate filters, and click "Save Changes". 
 
 ## Contents
 
@@ -27,12 +27,11 @@ bootstrap.min.css: Modified bootstrap css for dark theme.<br>
 
 **static/js**<br>
 logic.js: User JavaScript functions to load data, populate clue delivery system, and enable customization/filtering of clues.<br>
-jquery-csv.js: Jquery plugin to allow conversion of raw csv to a JavaScript object.<br>
 apigClient.js, /lib: API Gateway SDK to invoke the clue serving API with Cognito credentials.
 
 ## Data Preparation
 
-All data cleaning procedures and machine learning models detailed below were done in Python.
+All data cleaning procedures and machine learning models detailed below were written in Python.
 
 All webpages for shows after 2000 were downloaded from J! Archive, and clue, category and show data were parsed using Beautiful Soup. Clue values were taken based on position on the board (ignoring daily doubles). Clues with links to images/video/sound were ignored.
 
@@ -61,4 +60,4 @@ The Jeopardy! name and all elements are property of Jeopardy Productions, Inc. J
 
 ## Feedback/Contributions
 
-Any suggestions or bug reports would be greatly appreciated. Feel free to use any component functions or the application itself for any purpose.
+Any suggestions or bug reports would be greatly appreciated, feel free to contact me at [sstankevitsch@gmail.com](mailto:sstankevitsch@gmail.com?subject=JTrain%20Feedback)
