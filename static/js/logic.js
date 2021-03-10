@@ -79,7 +79,7 @@ function generateClue(requestData,settings,apigClient){
 }
 
 // Build the main page with specified clue data set, controlled by filters in the customize page.
-function buildClues(result, settings,apigClient){
+function buildClues(result,settings,apigClient){
     // After randomly generating the clue, find matching category and show data.
     var clue = result['clue']
     var category = result['category']
@@ -108,20 +108,20 @@ function buildClues(result, settings,apigClient){
     }
     // Event handlers for hint, answer, and metadata buttons.
     // Rebuild UI with a different clue if "New Clue" button is clicked.
-    $("#showAnswer").click(function(){
+    $("#showAnswer").on("click",function(){
         $("#buttonResponse").html(`Answer:<br>${clue["answer1"]}<br>\
         <button type="button" class="btn btn-secondary mt-2" id="newClue">New Clue</button>`)
-        $("#newClue").click(function(){
+        $("#newClue").on("click",function(){
             generateClue($("form").serializeArray(),settings,apigClient)
         })
     })
-    $("#showHints").click(function(){
+    $("#showHints").on("click",function(){
         $("#buttonResponse").html("The answer is one of the following:<br>")
         hints.forEach(function(hint){
             $("#buttonResponse").append(`${hint}<br>`)
         })
     })
-    $("#moreInfo").click(function(){
+    $("#moreInfo").on("click",function(){
         // Convert numeric codes Final Jeopardy clues, Tiebreakers, and Rounds.
         if (clue["cluevalue"] == "0" || clue["cluevalue"] == "-1"){
             $("#buttonResponse").html(`Value: ${valueConversion[clue["cluevalue"]]}<br>\
@@ -144,6 +144,10 @@ function buildClues(result, settings,apigClient){
     } else {
         $("#customizeModalLabel").text(`Customization Settings: ${result['count']} clues selected`)
     }
+    // Removing focus state from buttons, but only for mouse users.
+    $(".btn").on("mouseout",function(){
+        $(this).trigger("blur")
+    })
 }
 
 // Build the customization modal with all possible filters, dictated by the supplementary objects at the top.
@@ -153,9 +157,9 @@ function buildCustomization(settings,apigClient){
     for (let [key,values] of Object.entries(labels["category"])){
         $("#collapseOne").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2" id="${key}" data-toggle="buttons">\
         <label class="mb-0 align-top filterLabel">${key}</label>\
-        <label class="btn btn-secondary active all"><input type="radio" checked><h5 class=mb-0>All</h5></label>\
-        <label class="btn btn-secondary none"><input type="radio"><h5 class=mb-0>None</h5></label>\
-        <label class="btn btn-secondary dropdown-toggle choose"><input type="checkbox"></label>\
+        <label class="btn btn-secondary active"><input type="radio" class="all" checked><h5 class=mb-0>All</h5></label>\
+        <label class="btn btn-secondary"><input type="radio" class="none"><h5 class=mb-0>None</h5></label>\
+        <label class="btn btn-secondary dropdown-toggle"><input type="checkbox" class="choose"></label>\
         </div>`)
         values.forEach(function(value){
             $("#collapseOne").find(".card-body").append(`<div class="custom-control custom-checkbox text-left d-none">\
@@ -168,9 +172,9 @@ function buildCustomization(settings,apigClient){
     for (let [key,values] of Object.entries(labels["round"])){
         $("#collapseTwo").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2" id="${key}" data-toggle="buttons">\
         <label class="mb-0 align-top filterLabel">${key}</label>\
-        <label class="btn btn-secondary active all"><input type="radio" checked><h5 class=mb-0>All</h5></label>\
-        <label class="btn btn-secondary none"><input type="radio"><h5 class=mb-0>None</h5></label>\
-        <label class="btn btn-secondary dropdown-toggle choose"><input type="checkbox"></label>\
+        <label class="btn btn-secondary active"><input type="radio" class="all" checked><h5 class=mb-0>All</h5></label>\
+        <label class="btn btn-secondary"><input type="radio" class="none"><h5 class=mb-0>None</h5></label>\
+        <label class="btn btn-secondary dropdown-toggle"><input type="checkbox" class="choose"></label>\
         </div>`)
         values.forEach(function(value){
             $("#collapseTwo").find(".card-body").append(`<div class="custom-control custom-checkbox text-left d-none">\
@@ -183,9 +187,9 @@ function buildCustomization(settings,apigClient){
     for (let [key,values] of Object.entries(labels["showType"])){
         $("#collapseThree").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2" id="${key}" data-toggle="buttons">\
         <label class="mb-0 align-top filterLabel">${key}</label>\
-        <label class="btn btn-secondary active all"><input type="radio" checked><h5 class=mb-0>All</h5></label>\
-        <label class="btn btn-secondary none"><input type="radio"><h5 class=mb-0>None</h5></label>\
-        <label class="btn btn-secondary dropdown-toggle choose"><input type="checkbox"></label>\
+        <label class="btn btn-secondary active"><input type="radio" class="all" checked><h5 class=mb-0>All</h5></label>\
+        <label class="btn btn-secondary"><input type="radio" class="none"><h5 class=mb-0>None</h5></label>\
+        <label class="btn btn-secondary dropdown-toggle"><input type="checkbox" class="choose"></label>\
         </div>`)
         values.forEach(function(value){
             $("#collapseThree").find(".card-body").append(`<div class="custom-control custom-checkbox text-left d-none">\
@@ -205,45 +209,41 @@ function buildCustomization(settings,apigClient){
         <label class="btn btn-secondary"><input type="radio" name="clueSet" value="2"><h5 class=mb-0>2</h5></label>\
         <label class="btn btn-secondary"><input type="radio" name="clueSet" value="3"><h5 class=mb-0>3</h5></label></div>`)
     // Converting the enter key on buttons and checkboxes to clicks to allow keyboard usage
-    $(".btn").keypress(function(e){
-        if (e.which === 13){
-            $(this).click()
+    $(".btn").on("keypress",function(e){
+        if (e.key === "Enter"){
+            $(this)[0].click()
         }
     })
-    $(".custom-control-input").keypress(function(e){
-        if (e.which === 13){
-            $(this).click()
+    $(".custom-control-input").on("keypress",function(e){
+        if (e.key === "Enter"){
+            $(this)[0].click()
         }
-    })
-    // Removing focus state from buttons, but only for mouse users.
-    $(".btn").mouseout(function(){
-        $(this).blur()
     })
     // There are no sub-filters for Regular show type, so remove the option.
     $("#Regular").find(".dropdown-toggle").addClass("d-none")
     // Show sub-filters on clicking dropdown button.
-    $(".choose").click(function(){
-        var id = $(this).parent().attr("id")
+    $(".choose").on("click",function(){
+        var id = $(this).parent().parent().attr("id")
         $(`input[name="${id}"]`).each(function(){
             $(this).parent().toggleClass("d-none")
         })
     })
     // Check all sub-filter checkboxes on clicking "All" button (the reverse is also handled down below).
-    $(".all").click(function(){
-        var id = $(this).parent().attr("id")
+    $(".all").on("click",function(){
+        var id = $(this).parent().parent().attr("id")
         $(`input[name="${id}"]`).each(function(){
             $(this).prop("checked",true)
         })
     })
     // Uncheck all sub-filter checkboxes on clicking "None" button.
-    $(".none").click(function(){
-        var id = $(this).parent().attr("id")
+    $(".none").on("click",function(){
+        var id = $(this).parent().parent().attr("id")
         $(`input[name="${id}"]`).each(function(){
             $(this).prop("checked",false)
         })
     })
     // Activate "All", "None", or neither filter button depending on whether all, none, or some sub-filter checkboxes are checked.
-    $(".custom-control-input").change(function(){
+    $(".custom-control-input").on("change",function(){
         var id = $(this).attr("name")
         if ($(`input[name="${id}"]:checked`).length == $(`input[name="${id}"]`).length){
             $(`div[id="${id}"`).find(".all").addClass("active")
@@ -263,8 +263,8 @@ function buildCustomization(settings,apigClient){
         })
     }
     // Activate clue set button manually, as there is a handler below to display a warning on change.
-    $("#clueSet").find(`input[value="${settings["clueSet"]}"]`).click()
-    $("input[type=radio][name=clueSet]").change(function(){
+    $("#clueSet").find(`input[value="1"]`)[0].click()
+    $("input[type=radio][name=clueSet]").on("change",function(){
         if (this.value != "1"){
             if (alertWarning != true){
                 $("#customizeModal").find(".modal-body").prepend('<div class="alert alert-warning alert-dismissible">\
@@ -278,12 +278,12 @@ function buildCustomization(settings,apigClient){
             }
         }
     })
-    $("#customizeSave").off().click(function(){
+    $("#customizeSave").off().on("click",function(){
         // Create object out of customization form results.
         settings = {"hintCount":$("form").serializeArray().find(row => row["name"]=="hintCount")["value"],"clueSet":$("form").serializeArray().find(row => row["name"]=="clueSet")["value"]}
         generateClue($("form").serializeArray(),settings,apigClient)
     })
-    $("#customizeReset").off().click(function(){
+    $("#customizeReset").off().on("click",function(){
         buildCustomization(defaultSettings,apigClient)
     })
 }
