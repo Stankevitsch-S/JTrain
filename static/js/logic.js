@@ -246,14 +246,14 @@ function buildCustomization(settings,apigClient){
     $(".custom-control-input").on("change",function(){
         var id = $(this).attr("name")
         if ($(`input[name="${id}"]:checked`).length == $(`input[name="${id}"]`).length){
-            $(`div[id="${id}"`).find(".all").addClass("active")
-            $(`div[id="${id}"`).find(".none").removeClass("active")
+            $(`div[id="${id}"]`).find(".all").parent().addClass("active")
+            $(`div[id="${id}"]`).find(".none").parent().removeClass("active")
         } else if ($(`input[name="${id}"]:checked`).length == 0){
-            $(`div[id="${id}"`).find(".all").removeClass("active")
-            $(`div[id="${id}"`).find(".none").addClass("active")            
+            $(`div[id="${id}"]`).find(".all").parent().removeClass("active")
+            $(`div[id="${id}"]`).find(".none").parent().addClass("active")            
         } else {
-            $(`div[id="${id}"`).find(".all").removeClass("active")
-            $(`div[id="${id}"`).find(".none").removeClass("active")
+            $(`div[id="${id}"]`).find(".all").parent().removeClass("active")
+            $(`div[id="${id}"]`).find(".none").parent().removeClass("active")
         }
     })
     // Clean up the customization modal on smaller screens.
