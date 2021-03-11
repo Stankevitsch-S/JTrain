@@ -27,20 +27,22 @@ function initApp(){
             sessionToken: AWS.config.credentials.sessionToken,
             region: AWS.config.region,
         })
-        generateClue(defaultRequest,defaultSettings,apigClient)
-        buildCustomization(defaultSettings,apigClient)
-        }).catch(function(result){
-            console.log(result)
+        generateClue(defaultRequest,apigClient)
+        buildCustomization()
+        }).catch(function(res){
+            console.log(res)
         })     
 }
 
 // Randomly generate clue along with corresponding category and metadata.
-function generateClue(requestData,settings,apigClient){
+function generateClue(requestData,apigClient){
     $("#buttonResponse").html("")
     $("#buttons").html("")
     apigClient.serveCluesPost({},requestData)
-    .then(function(result){
-        var result = result['data']
+    .then(function(res){
+        var result = res['data']
+        // No clues to present if the query returns 0 clues,
+        // so raise an error and allow users to try again.
         if (result['count'] == 0){
             $("#customizeModalLabel").text(`Customization Settings: 0 clues selected`)
             if (alertError != true){
@@ -54,11 +56,15 @@ function generateClue(requestData,settings,apigClient){
                 }) 
             }                
         } else {
-            buildClues(result,settings,apigClient)
+            // Close the error alert if the user provides proper filters.
+            if (alertError){
+                $(".alert-danger").alert("close")
+            }
+            buildClues(result,requestData,apigClient)
         }        
-    }).catch(function(result){
+    }).catch(function(res){
         // Refresh credentials and try again if they have expired (temp credentials expire after an hour).
-        if (result['data']['message'] == "The security token included in the request is expired"){
+        if ((res['data']) && (res['data']['message'] == "The security token included in the request is expired")){
             var promise = AWS.config.credentials.refreshPromise();
             promise.then(function(){
                 var apigClient = apigClientFactory.newClient({
@@ -67,27 +73,29 @@ function generateClue(requestData,settings,apigClient){
                     sessionToken: AWS.config.credentials.sessionToken,
                     region: AWS.config.region,
                 })
-                generateClue(requestData,settings,apigClient)
-                }).catch(function(result){
-                    console.log(result)
+                generateClue(requestData,apigClient)
+                }).catch(function(res){
+                    console.log(res)
                 })
         // Otherwise, make sure not to call generateClue again to prevent endless loop of API calls.  
         } else {
-            console.log(result)
+            console.log(res)
         }
     })
 }
 
 // Build the main page with specified clue data set, controlled by filters in the customize page.
-function buildClues(result,settings,apigClient){
+function buildClues(result,requestData,apigClient){
     // After randomly generating the clue, find matching category and show data.
     var clue = result['clue']
     var category = result['category']
     var metadata = result['metadata']
+    // Extract hint count from request.
+    var hintCount = parseInt(requestData.find(row => row["name"]=="hintCount")["value"])
     // Gather and scramble near-miss hints (by default, 4 near misses + correct answer).
     var hints = []
-    for (let i = 0; i < parseInt(settings["hintCount"]); i++){
-        hints.push(`${clue[`answer${i+1}`]}`)
+    for (let i = 0; i < hintCount; i++){
+        hints.push(clue[`answer${i+1}`])
     }
     for (let i = hints.length - 1; i > 0; i--){
         let j = Math.floor(Math.random()*(i+1));
@@ -96,29 +104,27 @@ function buildClues(result,settings,apigClient){
     $("#assignedCat").text(`${category["categoryassigned"]}: ${category["subcategoryassigned"]}`)
     $("#category").text(`${category["category"]}`)
     $("#clue").text(`${clue["clue"]}`)
-    // Remove hints button if hint setting is set to 1.
-    if (hints.length === 1){
-        $("#buttons").html('<button type="button" class="btn btn-secondary mx-2 d-none" id="showHints">Show Hints</button>\
-        <button type="button" class="btn btn-secondary mx-2" id="showAnswer">Show Answer</button>\
-        <button type="button" class="btn btn-secondary mx-2" id="moreInfo">More Info</button>')
-    } else {
-        $("#buttons").html('<button type="button" class="btn btn-secondary mx-2" id="showHints">Show Hints</button>\
-        <button type="button" class="btn btn-secondary mx-2" id="showAnswer">Show Answer</button>\
-        <button type="button" class="btn btn-secondary mx-2" id="moreInfo">More Info</button>')
+    // Remove hints button if hint count setting is set to 1.
+    $("#buttons").html('<button type="button" class="btn btn-secondary mx-2 d-none" id="showHints">Show Hints</button>\
+    <button type="button" class="btn btn-secondary mx-2" id="showAnswer">Show Answer</button>\
+    <button type="button" class="btn btn-secondary mx-2" id="moreInfo">More Info</button>')
+    // Otherwise, reveal the "Show Hints" button and give it functionality.
+    if (hintCount > 1){
+        $("#showHints").removeClass("d-none")
+        $("#showHints").on("click",function(){
+            $("#buttonResponse").html("The answer is one of the following:<br>")
+            hints.forEach(function(hint){
+                $("#buttonResponse").append(`${hint}<br>`)
+            })
+        })
     }
-    // Event handlers for hint, answer, and metadata buttons.
-    // Rebuild UI with a different clue if "New Clue" button is clicked.
+    // Event handlers for answer and metadata buttons.
     $("#showAnswer").on("click",function(){
         $("#buttonResponse").html(`Answer:<br>${clue["answer1"]}<br>\
         <button type="button" class="btn btn-secondary mt-2" id="newClue">New Clue</button>`)
+        // Rebuild UI with a different clue if "New Clue" button is clicked.
         $("#newClue").on("click",function(){
-            generateClue($("form").serializeArray(),settings,apigClient)
-        })
-    })
-    $("#showHints").on("click",function(){
-        $("#buttonResponse").html("The answer is one of the following:<br>")
-        hints.forEach(function(hint){
-            $("#buttonResponse").append(`${hint}<br>`)
+            generateClue(requestData,apigClient)
         })
     })
     $("#moreInfo").on("click",function(){
@@ -144,14 +150,63 @@ function buildClues(result,settings,apigClient){
     } else {
         $("#customizeModalLabel").text(`Customization Settings: ${result['count']} clues selected`)
     }
+    // Event handler for the 'Save Changes' button is not in buildCustomization() as it needs 
+    // the previous request (requestData) to determine whether or not to generate a new clue.
+    $("#customizeSave").off("click").on("click",function(){
+        // If the form is idential to the previous request, do nothing.
+        if ($("form").serialize() == $.param(requestData)) {
+        // If the only change in the form is in the hint count, do not generate a new clue, just update hints.
+        } else if ($("form").serialize().replace(/hintCount=\d+/,'') == $.param(requestData).replace(/hintCount=\d+/,'')){
+            // Extract hint count from the form this time.
+            var hintCount = parseInt($("form").serializeArray().find(row => row["name"]=="hintCount")["value"])
+            var hints = []
+            for (let i = 0; i < hintCount; i++){
+                hints.push(result['clue'][`answer${i+1}`])
+            }
+            for (let i = hints.length - 1; i > 0; i--){
+                let j = Math.floor(Math.random()*(i+1));
+                [hints[i],hints[j]] = [hints[j],hints[i]]
+            }
+            // If the "Show Hints" button is currently selected, update the text that it shows.
+            if ($("#buttonResponse:contains('The answer is one of the following:')").length>0){
+                if (hintCount == 1){
+                    $("#buttonResponse").html("")
+                } else {
+                    $("#buttonResponse").html("The answer is one of the following:<br>")
+                    hints.forEach(function(hint){
+                        $("#buttonResponse").append(`${hint}<br>`)
+                    })
+                }
+            }
+            // If the new hint count is greater than 1, update the "Show Hints" event handler.
+            if (hintCount > 1){
+                $("#showHints").removeClass("d-none")
+                $("#showHints").off("click").on("click",function(){
+                    $("#buttonResponse").html("The answer is one of the following:<br>")
+                    hints.forEach(function(hint){
+                        $("#buttonResponse").append(`${hint}<br>`)
+                    })
+                })
+            // Otherwise just remove the button.
+            } else if (hintCount == 1){
+                $("#showHints").addClass("d-none")
+            }
+            // Update the requestData variable we are comparing to with the form data.
+            requestData = $("form").serializeArray()
+        } else {
+            // Ensure the requestData variable is updated, as buildClues() is not called if generateClue() returns 0 clues.
+            requestData = $("form").serializeArray()
+            generateClue(requestData,apigClient)
+        }
+    })
     // Removing focus state from buttons, but only for mouse users.
-    $(".btn").on("mouseout",function(){
+    $(".btn").off("mouseout").on("mouseout",function(){
         $(this).trigger("blur")
     })
 }
 
 // Build the customization modal with all possible filters, dictated by the supplementary objects at the top.
-function buildCustomization(settings,apigClient){
+function buildCustomization(){
     // Populate category/subcategory filters.
     $("#collapseOne").find(".card-body").html("")
     for (let [key,values] of Object.entries(labels["category"])){
@@ -201,15 +256,15 @@ function buildCustomization(settings,apigClient){
     $("#collapseFour").find(".card-body").html("")
     $("#collapseFour").find(".card-body").append(`<div class="row">\
         <div class="col-md-2 col-xs-3"><label for="hintCount"><h5 class=mb-0>Hints</h5></label></div>\
-        <div class="col-md-9 col-xs-8"><input type="range" class="custom-range" name="hintCount" min="1" max="11" id="hintCount" value="${settings["hintCount"]}" oninput="hints.value=hintCount.value"></div>\
-        <div class="col-md-1 col-xs-1"><h5 class=mb-0><output id="hints" name="hints" for="hintCount">${settings["hintCount"]}</output></h5></div></div>\
+        <div class="col-md-9 col-xs-8"><input type="range" class="custom-range" name="hintCount" min="1" max="11" id="hintCount" value="${defaultSettings["hintCount"]}" oninput="hints.value=hintCount.value"></div>\
+        <div class="col-md-1 col-xs-1"><h5 class=mb-0><output id="hints" name="hints" for="hintCount">${defaultSettings["hintCount"]}</output></h5></div></div>\
         <div class="btn-group-toggle text-left h5 my-2" id="clueSet" data-toggle="buttons">\
         <label class="mb-0 align-top filterLabel">Clue Set</label>\
         <label class="btn btn-secondary"><input type="radio" name="clueSet" value="1"><h5 class=mb-0>1</h5></label>\
         <label class="btn btn-secondary"><input type="radio" name="clueSet" value="2"><h5 class=mb-0>2</h5></label>\
         <label class="btn btn-secondary"><input type="radio" name="clueSet" value="3"><h5 class=mb-0>3</h5></label></div>`)
-    // Converting the enter key on buttons and checkboxes to clicks to allow keyboard usage
-    $(".btn").on("keypress",function(e){
+    // Converting the enter key on label tags acting as buttons and checkboxes to clicks to allow keyboard usage.
+    $(".btn").off("keypress").on("keypress",function(e){
         if (e.key === "Enter"){
             $(this)[0].click()
         }
@@ -264,7 +319,9 @@ function buildCustomization(settings,apigClient){
     }
     // Activate clue set button manually, as there is a handler below to display a warning on change.
     $("#clueSet").find(`input[value="1"]`)[0].click()
+    $("#clueSet").find(`input[value="1"]`).trigger("blur")
     $("input[type=radio][name=clueSet]").on("change",function(){
+        // No need to display the warning if the clue set is changed to 1.
         if (this.value != "1"){
             if (alertWarning != true){
                 $("#customizeModal").find(".modal-body").prepend('<div class="alert alert-warning alert-dismissible">\
@@ -278,13 +335,17 @@ function buildCustomization(settings,apigClient){
             }
         }
     })
-    $("#customizeSave").off().on("click",function(){
-        // Create object out of customization form results.
-        settings = {"hintCount":$("form").serializeArray().find(row => row["name"]=="hintCount")["value"],"clueSet":$("form").serializeArray().find(row => row["name"]=="clueSet")["value"]}
-        generateClue($("form").serializeArray(),settings,apigClient)
+    // Rebuild customization modal with default settings.
+    $("#customizeReset").off("click").on("click",function(){
+        // Close the warning alert if the user resets filters (thus changing clue set to 1).
+        if (alertWarning){
+            $(".alert-warning").alert("close")
+        }
+        buildCustomization()
     })
-    $("#customizeReset").off().on("click",function(){
-        buildCustomization(defaultSettings,apigClient)
+    // Removing focus state from buttons, but only for mouse users.
+    $(".btn").off("mouseout").on("mouseout",function(){
+        $(this).trigger("blur")
     })
 }
 
