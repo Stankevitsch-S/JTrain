@@ -1,3 +1,12 @@
+// AWS dependencies and config.
+import {CognitoIdentityClient} from "@aws-sdk/client-cognito-identity"
+import {fromCognitoIdentityPool} from "@aws-sdk/credential-provider-cognito-identity"
+import {default as apigClientFactory} from "aws-api-gateway-client"
+const regionAWS = "us-east-2"
+const identityPoolIdAWS = "us-east-2:5f1995a6-d8c2-40aa-b0cd-d993cf08f7b0"
+const invokeUrlAWS = "https://ys7dxtnbo9.execute-api.us-east-2.amazonaws.com/default"
+const cognitoIdentityClient = new CognitoIdentityClient({region: regionAWS})
+
 // Some supplementary data to populate customization fields and handle differences
 // between screen names (ex: Jeopardy Round) and underlying data (ex: category[round] of 1).
 const labels={"category":{"Business":["Brands","Companies"],"Culture":["Art","Awards","Dance","Events","Fashion","Food & Drink","Museums","Theatre"],"Entertainment":["Games","Internet","Magazines & Newspapers","Movies & Film","Television","The Oscars"],"Geography":["Bodies of Water","Cities","Countries","Islands","Mountains","States"],"History":["Chronology","Famous Women","Monarchies","Ships & Sailors","War"],"Language":["Languages","Letters & Letter Play","Literature","Phrases","Shakespeare","Words & Word Play"],"Music":["Classical Music","Contemporary Music"],"Nature":["Birds","Parks","Pets","Plants","Trees","Zoology"],"Politics":["Government","Law","Presidents","World Leaders"],"Religion":["God & Gods","The Church"],"Science":["Anatomy","Chemistry","Engineering","Health","Measurements","Outer Space","Teeth & Dentistry"],"Sports":["Competition","Teams"],"Other":["Colleges & Universities","Colors","Flags","Hotels","Money","Numbers & Number Play","Stamps"]},"round":{"Jeopardy Round":["200","400","600","800","1000"],"Double Jeopardy Round":["400","800","1200","1600","2000"],"Final Jeopardy Round":["Final Jeopardy","Tiebreaker"]},"showType":{"Regular":["Regular"],"Celebrity":["Celebrity Jeopardy!","Million Dollar Celebrity Invitational","Power Players Week"],"Champions":["All-Star Games","Battle of the Decades","Jeopardy! Greatest of All Time","Million Dollar Masters","The IBM Challenge","Tournament of Champions","Ultimate Tournament of Champions"],"College":["College Championship","Kids Week Reunion"],"Kids":["Back to School Week","Holiday Kids Week","Kids Week"],"Teen":["Teen Tournament","Teen Tournament Summer Games"],"Other":["International Championship","Teachers Tournament"]}}
@@ -13,19 +22,18 @@ var alertError
 
 // Initialize everything with default request and settings on page load (function call is at the bottom).
 function initApp(){
-    // Initialize the Amazon Cognito credentials provider.
-    AWS.config.region = 'us-east-2'; // Region
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-        IdentityPoolId: 'us-east-2:5f1995a6-d8c2-40aa-b0cd-d993cf08f7b0'
-    });
     // Get temporary credentials to use the API Gateway service.
-    var promise = AWS.config.credentials.getPromise();
-    promise.then(function(){
+    var provideCredentials = fromCognitoIdentityPool({
+        client: cognitoIdentityClient,
+        identityPoolId: identityPoolIdAWS
+    })()
+    provideCredentials.then(function(creds){
         var apigClient = apigClientFactory.newClient({
-            accessKey: AWS.config.credentials.accessKeyId,
-            secretKey: AWS.config.credentials.secretAccessKey,
-            sessionToken: AWS.config.credentials.sessionToken,
-            region: AWS.config.region,
+            invokeUrl: invokeUrlAWS,
+            accessKey: creds.accessKeyId,
+            secretKey: creds.secretAccessKey,
+            sessionToken: creds.sessionToken,
+            region: regionAWS
         })
         generateClue(defaultRequest,apigClient)
         buildCustomization()
@@ -38,7 +46,7 @@ function initApp(){
 function generateClue(requestData,apigClient){
     $("#buttonResponse").html("")
     $("#buttons").html("")
-    apigClient.serveCluesPost({},requestData)
+    apigClient.invokeApi({},'/ServeClues','POST',{},requestData)
     .then(function(res){
         var result = res['data']
         // No clues to present if the query returns 0 clues,
@@ -50,11 +58,12 @@ function generateClue(requestData,apigClient){
                 <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>\
                 <strong>Error:</strong> Filtering returns no clues.\
                 </div>')
+                $("#buttons").html("Error, please adjust filters")
                 alertError = true
                 $(".alert-danger").on("close.bs.alert", function(){
                     alertError = false
                 }) 
-            }                
+            }
         } else {
             // Close the error alert if the user provides proper filters.
             if (alertError){
@@ -65,13 +74,17 @@ function generateClue(requestData,apigClient){
     }).catch(function(res){
         // Refresh credentials and try again if they have expired (temp credentials expire after an hour).
         if ((res['data']) && (res['data']['message'] == "The security token included in the request is expired")){
-            var promise = AWS.config.credentials.refreshPromise();
-            promise.then(function(){
+            var provideCredentials = fromCognitoIdentityPool({
+                client: cognitoIdentityClient,
+                identityPoolId: identityPoolIdAWS
+            })()
+            provideCredentials.then(function(creds){
                 var apigClient = apigClientFactory.newClient({
-                    accessKey: AWS.config.credentials.accessKeyId,
-                    secretKey: AWS.config.credentials.secretAccessKey,
-                    sessionToken: AWS.config.credentials.sessionToken,
-                    region: AWS.config.region,
+                    invokeUrl: invokeUrlAWS,
+                    accessKey: creds.accessKeyId,
+                    secretKey: creds.secretAccessKey,
+                    sessionToken: creds.sessionToken,
+                    region: regionAWS
                 })
                 generateClue(requestData,apigClient)
                 }).catch(function(res){
