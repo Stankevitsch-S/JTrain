@@ -17,17 +17,19 @@ To filter for specific categories, values, and/or show types, click on customize
 ## Contents
 
 **root**<br>
-index.html: Landing page, mainly contains text and bootstrap components to be populated with JavaScript.<br>
-app.js: Node.js script to run web server and host static files.<br>
-lambda_function.py: Python script running on AWS Lambda to query an AWS RDS instance and interact with API Gateway to return clues.
+server.js: Node.js script to run web server and host static files.<br>
+lambda_function.py: Python script running on AWS Lambda to query an AWS RDS instance and interact with API Gateway to return clues.<br>
+amplify.yml: Amplify app build specification file.<br>
 
-**static/css**<br>
+**src**<br>
+index.html: Landing page, mainly contains text and bootstrap components to be populated with JavaScript.<br>
+
+**src/css**<br>
 style.css: User css sheet with small fixes for alignment/clarity.<br>
 bootstrap.min.css: Modified bootstrap css for dark theme.<br>
 
-**static/js**<br>
-logic.js: User JavaScript functions to load data, populate clue delivery system, and enable customization/filtering of clues.<br>
-apigClient.js, /lib: API Gateway SDK to invoke the clue serving API with Cognito credentials.
+**src/js**<br>
+logic.js: User JavaScript functions to call API, populate clue delivery system, and enable customization/filtering of clues (will be bundled by webpack during build).<br>
 
 ## Data Preparation
 
