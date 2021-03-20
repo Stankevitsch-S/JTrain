@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://kit.fontawesome.com/ecae07035d.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="css/bootstrap.min.css">    
     <link rel="stylesheet" href="css/style.css"> 
   	<link href="img/favicon.ico" rel="icon" type="image/x-icon"/>	
@@ -33,7 +34,11 @@
                         Filter by Category / Subcategory
                       </button>
                       <div id="collapseOne" class="collapse" aria-labelledby="customizeCategory" data-parent="#customizeOptions">
-                        <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                          <li class="list-group-item h5">Legend:<br><i class="fas fa-check fa-fw"></i> Include Category<br><i class="fas fa-times fa-fw"></i> Exclude Category<br><i class="fas fa-caret-down fa-fw"></i> Specify Subcategories</li>
+                          <li class="list-group-item py-0"></li>
+                        </ul>
+                        <div class="card-body pt-0">
                         </div>
                       </div>
                   </div>
@@ -42,7 +47,11 @@
                       Filter by Round / Value
                     </button>
                     <div id="collapseTwo" class="collapse" aria-labelledby="customizeRound" data-parent="#customizeOptions">
-                      <div class="card-body">
+                      <ul class="list-group list-group-flush">
+                        <li class="list-group-item h5">Legend:<br><i class="fas fa-check fa-fw"></i> Include Round<br><i class="fas fa-times fa-fw"></i> Exclude Round<br><i class="fas fa-caret-down fa-fw"></i> Specify Values</li>
+                        <li class="list-group-item py-0"></li>
+                      </ul>
+                      <div class="card-body pt-0">
                       </div>
                     </div>
                   </div>
@@ -51,7 +60,11 @@
                       Filter by Show Type
                     </button>
                     <div id="collapseThree" class="collapse" aria-labelledby="customizeShow" data-parent="#customizeOptions">
-                      <div class="card-body">
+                      <ul class="list-group list-group-flush">
+                        <li class="list-group-item h5">Legend:<br><i class="fas fa-check fa-fw"></i> Include Show Type<br><i class="fas fa-times fa-fw"></i> Exclude Show Type<br><i class="fas fa-caret-down fa-fw"></i> Specify Events</li>
+                        <li class="list-group-item py-0"></li>
+                      </ul>
+                      <div class="card-body pt-0">
                       </div>
                     </div>
                   </div>
@@ -89,10 +102,10 @@
               J! Train is a web application that looks to improve skills in both recall and critical thinking. All Jeopardy! clues in shows since 2000 have been categorized and hints are available in the form of near-miss answers.
               <h5 class="my-2">Usage Tips</h5>
               <ul>
-                <li>Avoid simultaneous filters on all three criteria (category, round, and show type) as there may not be any resutls.</li>
+                <li class="mb-1">Increasing the clue set results in a threefold increase in clue count but is only recommended without category filters.</li>
+                <li class="mb-1">For clues that change with time (e.g. current president of country X), you can see the show's airdate by clicking "More Info".</li>
+                <li class="mb-1">Avoid simultaneous filters on all three criteria (category, round, and show type) as there may not be any results.</li>
                 <li>Hints can be turned off by setting hints to 1 in Advanced Settings.</li>
-                <li>Increasing the clue set results in a threefold increase in clue count but is only recommended without category filters.</li>
-                <li>For clues that change with time (e.g. current president of country X), you can see the show's airdate by clicking "More Info".</li>
               </ul>
               <h5 class="my-2">Contact</h5>
               Contributor: Shawn Stankevitsch <br>

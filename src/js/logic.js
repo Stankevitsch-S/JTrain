@@ -223,11 +223,11 @@ function buildCustomization(){
     // Populate category/subcategory filters.
     $("#collapseOne").find(".card-body").html("")
     for (let [key,values] of Object.entries(labels["category"])){
-        $("#collapseOne").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2" id="${key}" data-toggle="buttons">\
-        <label class="mb-0 align-top filterLabel">${key}</label>\
-        <label class="btn btn-secondary active"><input type="radio" class="all" checked><h5 class=mb-0>All</h5></label>\
-        <label class="btn btn-secondary"><input type="radio" class="none"><h5 class=mb-0>None</h5></label>\
-        <label class="btn btn-secondary dropdown-toggle"><input type="checkbox" class="choose"></label>\
+        $("#collapseOne").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2 d-flex" id="${key}" data-toggle="buttons">\
+        <label class="mb-0 align-top filterLabel mr-auto">${key}</label>\
+        <label class="btn btn-secondary active"><input type="radio" class="all" checked><i class="fas fa-check fa-fw"></i></label>\
+        <label class="btn btn-secondary mx-1"><input type="radio" class="none"><i class="fas fa-times fa-fw"></i></label>\
+        <label class="btn btn-secondary"><input type="checkbox" class="choose"><i class="fas fa-caret-down fa-fw"></i></label>\
         </div>`)
         values.forEach(function(value){
             $("#collapseOne").find(".card-body").append(`<div class="custom-control custom-checkbox text-left d-none">\
@@ -238,11 +238,11 @@ function buildCustomization(){
     // Populate round/value filters.
     $("#collapseTwo").find(".card-body").html("")
     for (let [key,values] of Object.entries(labels["round"])){
-        $("#collapseTwo").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2" id="${key}" data-toggle="buttons">\
-        <label class="mb-0 align-top filterLabel">${key}</label>\
-        <label class="btn btn-secondary active"><input type="radio" class="all" checked><h5 class=mb-0>All</h5></label>\
-        <label class="btn btn-secondary"><input type="radio" class="none"><h5 class=mb-0>None</h5></label>\
-        <label class="btn btn-secondary dropdown-toggle"><input type="checkbox" class="choose"></label>\
+        $("#collapseTwo").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2 d-flex" id="${key}" data-toggle="buttons">\
+        <label class="mb-0 align-top filterLabel mr-auto">${key}</label>\
+        <label class="btn btn-secondary active"><input type="radio" class="all" checked><i class="fas fa-check fa-fw"></i></label>\
+        <label class="btn btn-secondary mx-1"><input type="radio" class="none"><i class="fas fa-times fa-fw"></i></label>\
+        <label class="btn btn-secondary"><input type="checkbox" class="choose"><i class="fas fa-caret-down fa-fw"></i></label>\
         </div>`)
         values.forEach(function(value){
             $("#collapseTwo").find(".card-body").append(`<div class="custom-control custom-checkbox text-left d-none">\
@@ -253,11 +253,11 @@ function buildCustomization(){
     // Populate show type filters.
     $("#collapseThree").find(".card-body").html("")
     for (let [key,values] of Object.entries(labels["showType"])){
-        $("#collapseThree").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2" id="${key}" data-toggle="buttons">\
-        <label class="mb-0 align-top filterLabel">${key}</label>\
-        <label class="btn btn-secondary active"><input type="radio" class="all" checked><h5 class=mb-0>All</h5></label>\
-        <label class="btn btn-secondary"><input type="radio" class="none"><h5 class=mb-0>None</h5></label>\
-        <label class="btn btn-secondary dropdown-toggle"><input type="checkbox" class="choose"></label>\
+        $("#collapseThree").find(".card-body").append(`<div class="btn-group-toggle text-left h5 my-2 d-flex" id="${key}" data-toggle="buttons">\
+        <label class="mb-0 align-top filterLabel mr-auto">${key}</label>\
+        <label class="btn btn-secondary active"><input type="radio" class="all" checked><i class="fas fa-check fa-fw"></i></label>\
+        <label class="btn btn-secondary mx-1"><input type="radio" class="none"><i class="fas fa-times fa-fw"></i></label>\
+        <label class="btn btn-secondary"><input type="checkbox" class="choose"><i class="fas fa-caret-down fa-fw"></i></label>\
         </div>`)
         values.forEach(function(value){
             $("#collapseThree").find(".card-body").append(`<div class="custom-control custom-checkbox text-left d-none">\
@@ -271,11 +271,11 @@ function buildCustomization(){
         <div class="col-md-2 col-xs-3"><label for="hintCount"><h5 class=mb-0>Hints</h5></label></div>\
         <div class="col-md-9 col-xs-8"><input type="range" class="custom-range" name="hintCount" min="1" max="11" id="hintCount" value="${defaultSettings["hintCount"]}" oninput="hints.value=hintCount.value"></div>\
         <div class="col-md-1 col-xs-1"><h5 class=mb-0><output id="hints" name="hints" for="hintCount">${defaultSettings["hintCount"]}</output></h5></div></div>\
-        <div class="btn-group-toggle text-left h5 my-2" id="clueSet" data-toggle="buttons">\
-        <label class="mb-0 align-top filterLabel">Clue Set</label>\
-        <label class="btn btn-secondary"><input type="radio" name="clueSet" value="1"><h5 class=mb-0>1</h5></label>\
-        <label class="btn btn-secondary"><input type="radio" name="clueSet" value="2"><h5 class=mb-0>2</h5></label>\
-        <label class="btn btn-secondary"><input type="radio" name="clueSet" value="3"><h5 class=mb-0>3</h5></label></div>`)
+        <div class="btn-group-toggle text-left h5 my-2 d-flex" id="clueSet" data-toggle="buttons">\
+        <label class="mb-0 align-top filterLabel mr-auto">Clue Set</label>\
+        <label class="btn btn-secondary"><input type="radio" name="clueSet" value="1"><h5 class="mb-0">1</h5></label>\
+        <label class="btn btn-secondary mx-1"><input type="radio" name="clueSet" value="2"><h5 class="mb-0">2</h5></label>\
+        <label class="btn btn-secondary"><input type="radio" name="clueSet" value="3"><h5 class="mb-0">3</h5></label></div>`)
     // Converting the enter key on label tags acting as buttons and checkboxes to clicks to allow keyboard usage.
     $(".btn").off("keypress").on("keypress",function(e){
         if (e.key === "Enter"){
@@ -288,7 +288,7 @@ function buildCustomization(){
         }
     })
     // There are no sub-filters for Regular show type, so remove the option.
-    $("#Regular").find(".dropdown-toggle").addClass("d-none")
+    $("#Regular").find(".choose").parent().css("visibility","hidden")
     // Show sub-filters on clicking dropdown button.
     $(".choose").on("click",function(){
         var id = $(this).parent().parent().attr("id")
@@ -327,6 +327,7 @@ function buildCustomization(){
     // Clean up the customization modal on smaller screens.
     if ($(window).width() <= 500){
         $(".filterLabel").each(function(){
+            $(this).parent().removeClass("d-flex")
             $(this).after("<br>")
         })
     }
