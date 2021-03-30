@@ -16,73 +16,76 @@ dbString = "postgresql://{}:{}@{}:{}/{}".format(os.environ['db_user'],os.environ
 engine = create_engine(dbString)
 
 def lambda_handler(event,context):
+    # Load request data (taken as the body of the API call).
     event = json.loads(event['body'])
+
     # Process input by whether it affects metadata, category, or clue.
-    subcategoriesList = [event[i]["value"] for i in range(len(event)) if event[i]["value"] in [i for sub in labels["category"].values() for i in sub]]
-    valueList = [roundConversion[event[i]["name"]]+valueConversion[event[i]["value"]] for i in range(len(event)) if (event[i]["value"] in [i for sub in labels["round"].values() for i in sub] and event[i]["name"] in labels["round"].keys())]
-    showSubTypeList = [event[i]["value"] for i in range(len(event)) if event[i]["value"] in [i for sub in labels["showType"].values() for i in sub]]
+    subcategoriesList = [event[i]['value'] for i in range(len(event)) if event[i]['value'] in [i for sub in labels['category'].values() for i in sub]]
+    valueList = [roundConversion[event[i]['name']]+valueConversion[event[i]['value']] for i in range(len(event)) if (event[i]['value'] in [i for sub in labels['round'].values() for i in sub] and event[i]["name"] in labels["round"].keys())]
+    showSubTypeList = [event[i]['value'] for i in range(len(event)) if event[i]['value'] in [i for sub in labels['showType'].values() for i in sub]]
 
     # If any filters return no entries, there will be no resulting clues.
     if (len(subcategoriesList)==0 or len(valueList)==0 or len(showSubTypeList)==0):
         return {
-            'statusCode': 200,
-            'headers': {
-            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-            'Access-Control-Allow-Credentials': True
+            "statusCode": 200,
+            "headers": {
+            "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+            "Access-Control-Allow-Credentials": True
             },
-            'body': json.dumps({'count':0})
+            "body": json.dumps({"count":0})
         }
 
     # Process input to determine which clue set to use.
-    clueSet = int([event[i]["value"] for i in range(len(event)) if event[i]["name"] == "clueSet"][0])
+    clueSet = int([event[i]['value'] for i in range(len(event)) if event[i]['name'] == 'clueSet'][0])
 
     # Build up final query for clues.
     clueQueryComponents = []
 
     # Determine whether a show type filter is needed, include it in the final query for clues.
-    if len(showSubTypeList) != len([i for sub in labels["showType"].values() for i in sub]):
-        showQueryValues = ",".join(f"('{i}')" for i in showSubTypeList)
-        filteredShowIDs = [r[0] for r in engine.execute("SELECT showid FROM metadata WHERE showsubtype = ANY(VALUES "+showQueryValues+")")]
-        clueQueryValues1 = ",".join(f"({i})" for i in filteredShowIDs)
-        clueQueryComponents.append("showid = ANY(VALUES "+clueQueryValues1+")")
+    if len(showSubTypeList) != len([i for sub in labels['showType'].values() for i in sub]):
+        showQueryValues = ','.join(f"('{i}')" for i in showSubTypeList)
+        filteredShowIDs = [r[0] for r in engine.execute('SELECT showid FROM metadata WHERE showsubtype = ANY(VALUES '+showQueryValues+')')]
+        clueQueryValues1 = ','.join(f'({i})' for i in filteredShowIDs)
+        clueQueryComponents.append('showid = ANY(VALUES '+clueQueryValues1+')')
     
     # Determine whether a subcategory filter is needed, include it in the final query for clues.
-    if len(subcategoriesList) != len([i for sub in labels["category"].values() for i in sub]):
-        categoryQueryValues = ",".join(f"('{i}')" for i in subcategoriesList)
-        filteredCategoryIDs = [r[0] for r in engine.execute(f"SELECT categoryid FROM category{clueSet} WHERE subcategoryassigned = ANY(VALUES "+categoryQueryValues+")")]
-        clueQueryValues2 = ",".join(f"({i})" for i in filteredCategoryIDs)
-        clueQueryComponents.append("categoryid = ANY(VALUES "+clueQueryValues2+")")        
+    if len(subcategoriesList) != len([i for sub in labels['category'].values() for i in sub]):
+        categoryQueryValues = ','.join(f"('{i}')" for i in subcategoriesList)
+        filteredCategoryIDs = [r[0] for r in engine.execute(f'SELECT categoryid FROM category{clueSet} WHERE subcategoryassigned = ANY(VALUES '+categoryQueryValues+')')]
+        clueQueryValues2 = ','.join(f'({i})' for i in filteredCategoryIDs)
+        clueQueryComponents.append('categoryid = ANY(VALUES '+clueQueryValues2+')')        
     
     # Determine whether a value filter is needed, include it in the final query for clues.
-    if len(valueList) != len([i for sub in labels["round"].values() for i in sub]):
-        clueQueryValues3 = ",".join(f"({i})" for i in valueList)
-        clueQueryComponents.append("newcluevalue = ANY(VALUES "+clueQueryValues3+")")
+    if len(valueList) != len([i for sub in labels['round'].values() for i in sub]):
+        clueQueryValues3 = ','.join(f'({i})' for i in valueList)
+        clueQueryComponents.append('newcluevalue = ANY(VALUES '+clueQueryValues3+')')
 
     # If there are no filters, no need for a "WHERE" statement.
     if len(clueQueryComponents) == 0:
-        clueIDResult = [r.clueid for r in engine.execute(f"SELECT clueid FROM clue{clueSet}")]
+        clueIDResult = [r.clueid for r in engine.execute(f'SELECT clueid FROM clue{clueSet}')]
     # If there were any filters, include the "WHERE".
     else:
-        clueQuery = " AND ".join(clueQueryComponents)
-        clueIDResult = [r.clueid for r in engine.execute(f"SELECT clueid FROM clue{clueSet} WHERE "+clueQuery)]
+        clueQuery = ' AND '.join(clueQueryComponents)
+        clueIDResult = [r.clueid for r in engine.execute(f'SELECT clueid FROM clue{clueSet} WHERE '+clueQuery)]
     
     # Using the result of clue ids, extract the count and a random clue.
     randomClueID = choice(clueIDResult)
-    randomClue = [dict(r.items()) for r in engine.execute(f"SELECT * FROM clue{clueSet} WHERE clueid = {randomClueID}")][0]
+    randomClue = [dict(r.items()) for r in engine.execute(f'SELECT * FROM clue{clueSet} WHERE clueid = {randomClueID}')][0]
+
     # Get the random clue's category and show data.
     randomCategory = [dict(r.items()) for r in engine.execute(f"SELECT * FROM category{clueSet} WHERE categoryid = {randomClue['categoryid']}")][0]
     randomMetadata = [dict(r.items()) for r in engine.execute(f"SELECT * FROM metadata WHERE showid = {randomClue['showid']}")][0]
     clueCount = len(clueIDResult)
 
     return {
-        'statusCode': 200,
-        'headers': {
-        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-        'Access-Control-Allow-Credentials': True
+        "statusCode": 200,
+        "headers": {
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        "Access-Control-Allow-Credentials": True
         },
-        'body': json.dumps({'clue':randomClue, 'category':randomCategory, 'metadata':randomMetadata, 'count':clueCount})
+        "body": json.dumps({"clue":randomClue, "category":randomCategory, "metadata":randomMetadata, "count":clueCount})
     }
