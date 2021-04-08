@@ -49,11 +49,11 @@ When the application is loaded, a Cognito identity is generated alongside tempor
 
 ## To do
 
-1. Create a clue queue to allow users to backtrack on clues. (This should only require some changes to logic.js)
+1. Track progress by category/value to numerically show areas of improvement. (Will likely use Cognito authentication and DynamoDB to store preferences+progress).
 
-2. Track progress by category/value to numerically show areas of improvement. (Will likely use Cognito authentication and DynamoDB to store preferences+progress)
+2. Build visualizations for users based on the data gathered above. (Will likely use Chart.js or Plotly).
 
-3. Build visualizations for users based on the data gathered above. (Will likely use Chart.js or Plotly)
+3. Create option for spaced repetition (Will require changes to logic.js and the Lambda function).
 
 ## Credits
 
@@ -62,4 +62,4 @@ The Jeopardy! name and all elements are property of Jeopardy Productions, Inc. J
 
 ## Feedback/Contributions
 
-Any suggestions or bug reports would be greatly appreciated, feel free to contact me at [sstankevitsch@gmail.com](mailto:sstankevitsch@gmail.com?subject=JTrain%20Feedback)
+Any suggestions or bug reports would be greatly appreciated, feel free to contact me at [sstankevitsch@gmail.com](mailto:sstankevitsch@gmail.com?subject=JTrain%20Feedback).
