@@ -74,6 +74,22 @@
                     </button>
                     <div id="collapseFour" class="collapse" aria-labelledby="customizeAdvanced" data-parent="#customizeOptions">
                       <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-2 col-3"><label for="hintCount"><h5 class=mb-0>Hints</h5></label></div>
+                          <div class="col-md-9 col-7"><input type="range" class="custom-range" min="1" max="11" id="hintCount" value="" oninput="hints.value=hintCount.value"></div>
+                          <div class="col-md-1 col-2"><h5 class=mb-0><output id="hints" for="hintCount"></output></h5></div>
+                        </div>
+                        <div class="btn-group-toggle h5 my-2 d-flex" id="clueSet" data-toggle="buttons">
+                          <label class="mb-0 filterLabel mr-auto">Clue Set <i class="fas fa-info-circle fa-fw" data-toggle="tooltip" data-placement="top" tabindex="0" title="Higher clue sets expand the pool of available questions, but may have less reliable categorization."></i></label>
+                          <label class="btn btn-secondary"><input type="radio" name="clueSet" value="1"><h5 class="mb-0">1</h5></label>
+                          <label class="btn btn-secondary mx-1"><input type="radio" name="clueSet" value="2"><h5 class="mb-0">2</h5></label>
+                          <label class="btn btn-secondary"><input type="radio" name="clueSet" value="3"><h5 class="mb-0">3</h5></label>
+                        </div>
+                        <div class="btn-group-toggle h5 my-2 d-flex" id="backtrack" data-toggle="buttons">
+                          <label class="mb-0 filterLabel mr-auto">Clue Backtracking <i class="fas fa-info-circle fa-fw" data-toggle="tooltip" data-placement="top" tabindex="0" title="Allows access to previously answered clues."></i></label>
+                          <label class="btn btn-secondary mr-1"><input type="radio" class="on"><h5 class="mb-0">On</h5></label>
+                          <label class="btn btn-secondary"><input type="radio" class="off"><h5 class="mb-0">Off</h5></label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -102,7 +118,7 @@
               J! Train is a web application that looks to improve skills in both recall and critical thinking. All Jeopardy! clues in shows since 2000 have been categorized and hints are available in the form of near-miss answers.
               <h5 class="my-2">Usage Tips</h5>
               <ul>
-                <li class="mb-1">Increasing the clue set results in a threefold increase in clue count but is only recommended without category filters.</li>
+                <li class="mb-1">Increasing the clue set is only recommended without category filters.</li>
                 <li class="mb-1">For clues that change with time (e.g. current president of country X), you can see the show's airdate by clicking "More Info".</li>
                 <li class="mb-1">Avoid simultaneous filters on all three criteria (category, round, and show type) as there may not be any results.</li>
                 <li>Hints can be turned off by setting hints to 1 in Advanced Settings.</li>
@@ -128,8 +144,12 @@
         <div class="col-md-6 col-xs-12">
           <div class="m-2">
             <div class="card text-center">
-              <h5 class="card-header" id="assignedCat">
-              </h5>
+              <div class="card-header h5 d-inline-flex">
+                <button class="btn btn-secondary mr-auto backtrack-btn backtrack-left" style="visibility:hidden" disabled><i class="fas fa-arrow-left fa-fw"></i></button>
+                <div class="my-auto" id="assignedCat">
+                </div>
+                <button class="btn btn-secondary ml-auto backtrack-btn backtrack-right" style="visibility:hidden" disabled><i class="fas fa-arrow-right fa-fw"></i></button>
+              </div>
               <div class="card-body">
                 <h3 id="category"></h3><br>
                 <h5 id="clue"></h5><br>
