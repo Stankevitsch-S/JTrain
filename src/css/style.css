@@ -4,8 +4,8 @@
 }
 
 .filterLabel{
-  padding-bottom: 7px;
-  padding-top: 7px; 
+  padding-bottom: 0.4375em;
+  padding-top: 0.4375em; 
 }
 
 .dropdown-toggle::after{
